@@ -2,6 +2,7 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import React, { useState } from 'react';
 import { storage } from '../setups/firebase_config';
 import { openai } from '../setups/openai';
+import { saveAs } from 'file-saver';
 
 
 export default function UseCases() {
@@ -9,8 +10,8 @@ export default function UseCases() {
    const [data, setData] = useState("");
    const [res, setRes] = useState("");
    const [lang, setLang] = useState("");
-   const [jsonObject, setJsonObject] = useState(null);
    const [filename, setfilename] = useState(null);
+   const [ConfigurationFunction, setConfigurationFunction] = useState(false);
 
    let maths = Math.random();
 
@@ -36,6 +37,7 @@ export default function UseCases() {
    async function callApi(e) {
 
       e.preventDefault();
+      setConfigurationFunction(false);
       const response = await openai.createCompletion({
          model: "text-davinci-003",
          prompt: `translate and write : "${data}" into "${lang}" language fonts`,
@@ -53,24 +55,40 @@ export default function UseCases() {
 
       const file = new Blob([final_data], { type: 'application/json' });
 
+
       const file_name = await setting_file()
       setfilename(file_name);
 
       const fileRef = ref(storage, file_name);
       uploadBytes(fileRef, file);
+
+      //Function to Show download button Here: 
+      setConfigurationFunction(true);
    }
 
+
    const downloadJsonFile = async () => {
+      try {
+         // Get the download URL for the JSON file
+         const url = await getDownloadURL(ref(storage, filename));
 
-      // Get the download URL for the JSON file
-      const url = await getDownloadURL(ref(storage, filename));
+         // Fetch the JSON file
+         const response = await fetch(url);
+         const json = await response.json();
 
-      // Fetch the JSON file
-      const response = await fetch(url);
-      const json = await response.json();
-      setJsonObject(json);
+         // Convert JSON object to string
+         const jsonString = JSON.stringify(json);
+
+         // Create Blob object from the JSON string
+         const blob = new Blob([jsonString], { type: "application/json" });
+
+         // Save the Blob object as a file using FileSaver
+         saveAs(blob, "Translated-words.json");
+
+      } catch (error) {
+         console.error(error);
+      }
    };
-
 
 
    return (
@@ -80,13 +98,13 @@ export default function UseCases() {
          </div>
 
          <div>
-            <button className='rounded border border-solid m-5' onClick={downloadJsonFile}>Download JSON File</button>
-            {jsonObject && (
-               <div>
-                  <h2>JSON Object:</h2>
-                  <pre>{JSON.stringify(jsonObject, null, 2)}</pre>
-               </div>
-            )}
+            {
+               (ConfigurationFunction === true) ?
+                  <button className='rounded border border-solid m-5' onClick={downloadJsonFile}>
+                     Download JSON File
+                  </button> : null
+            }
+
          </div>
 
          <textarea rows='2'
