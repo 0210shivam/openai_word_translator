@@ -1,9 +1,9 @@
-import UseCases from "./usecases";
+import Home from "./pages/landing";
 
 function App() {
 
   return (
-    <UseCases />
+    <Home />
   );
 }
 
