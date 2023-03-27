@@ -42,37 +42,42 @@ export default function UseCases() {
 
    async function callApi(e) {
 
-      e.preventDefault();
-      setConfigurationFunction(false);
-      setLoading(true);
-      const response = await openai.createCompletion({
-         model: "text-davinci-003",
-         prompt: `translate and write : "${data}" into "${selectedOption}" language fonts`,
-         max_tokens: 2040,
-         temperature: 0.7,
-      });
+      if (data === "" || selectedOption === "") {
+         alert("Please provide each input.")
+      } else {
 
-      inputArray = data.split(",");
+         e.preventDefault();
+         setConfigurationFunction(false);
+         setLoading(true);
+         const response = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: `translate and write : "${data}" into "${selectedOption}" language fonts`,
+            max_tokens: 2040,
+            temperature: 0.7,
+         });
 
-      const final_output = response.data.choices[0].text
-      outputArray = final_output.split(",");
+         inputArray = data.split(",");
 
-      const final_data = savingJsonObject();
+         const final_output = response.data.choices[0].text
+         outputArray = final_output.split(",");
 
-      setmappings(final_data);
+         const final_data = savingJsonObject();
 
-      const file = new Blob([final_data], { type: 'application/json' });
+         setmappings(final_data);
+
+         const file = new Blob([final_data], { type: 'application/json' });
 
 
-      const file_name = await setting_file()
-      setfilename(file_name);
+         const file_name = await setting_file()
+         setfilename(file_name);
 
-      const fileRef = ref(storage, file_name);
-      uploadBytes(fileRef, file);
+         const fileRef = ref(storage, file_name);
+         uploadBytes(fileRef, file);
 
-      //Function to Show download button Here: 
-      setConfigurationFunction(true);
-      setLoading(false);
+         //Function to Show download button Here: 
+         setConfigurationFunction(true);
+         setLoading(false);
+      }
    }
 
 
@@ -336,7 +341,7 @@ export default function UseCases() {
                {
                   (loading === false) ? <button onClick={callApi} className="mt-10 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                      Submit
-                  </button> : <button onClick={callApi} className="mt-10 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
+                  </button> : <button onClick={callApi} className="mt-10 shadow bg-purple-400 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                      Loading...
                   </button>
                }
